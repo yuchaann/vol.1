@@ -9,10 +9,9 @@ class Player:
         self.x=x
         self.y=y
     def update(self,dx,dy):
-        self.x=(self.x+dx)
-        self.y=(self.y+dy)
-    def draw(self):
-        pyxel.circ(self.x,self.y,2,7)
+        self.x += dx
+        self.y += dy
+
 class Enemy:
     def __init__(self,x,y):
         self.x=x
@@ -23,11 +22,13 @@ class App:
     def __init__(self):
         pyxel.init(200, 150)
         pyxel.cls(0)
-        self.player = Player(100,100)
+        x=100
+        y=100
+        self.player = Player(x,y)
         self.enemy = Enemy(170,40)
         pyxel.run(self.draw, self.update)
     def update(self):
-        if pyxel.btn(pyxel.KEY_2):
+        if pyxel.btnp(pyxel.KEY_2,1,1):
              self.player.update(1,1)
         if pyxel.btn(pyxel.KEY_1):
              self.player.update(-1,1)
@@ -37,6 +38,6 @@ class App:
              self.player.update(-1,-1)
         
     def draw(self):
-        self.player.draw()
+        pyxel.circ(self.player.x,self.player.y,2,7)
         self.enemy.draw()
 App()
