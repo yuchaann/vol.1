@@ -28,16 +28,17 @@ class App:
         self.enemy = Enemy(170,40)
         pyxel.run(self.draw, self.update)
     def update(self):
-        if pyxel.btnp(pyxel.KEY_2,1,1):
+        if pyxel.btnp(pyxel.KEY_L,1,1):
              self.player.update(1,1)
-        if pyxel.btn(pyxel.KEY_1):
+        if pyxel.btn(pyxel.KEY_K):
              self.player.update(-1,1)
-        if pyxel.btn(pyxel.KEY_5):
+        if pyxel.btn(pyxel.KEY_O):
              self.player.update(1,-1)
-        if pyxel.btn(pyxel.KEY_4):
+        if pyxel.btn(pyxel.KEY_I):
              self.player.update(-1,-1)
         
     def draw(self):
+        pyxel.cls(0)
         pyxel.circ(self.player.x,self.player.y,2,7)
         self.enemy.draw()
 App()
