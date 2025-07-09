@@ -2,22 +2,57 @@ import pyxel
 
 class Table:
     def __init__(self, cols, rows, cell_size):
+        # 既存の初期化コード
         self.cols = cols
         self.rows = rows
-        self.offset = 5
+        self.offset_x = 130
+        self.offset_y = 130
         self.cell_size = cell_size
-        # 0 = 白、1 = 黒 の2次元リストを初期化
         self.grid = [[0 for _ in range(cols)] for _ in range(rows)]
+        
+        # ここで正解用の2次元リストも用意（初期は全部0でOK）
+        self.solution = [[0 for _ in range(cols)] for _ in range(rows)]
+    
+    def is_cleared(self):
+        return self.grid == self.solution
+    
+    def set_solution_from_grid(self):
+        # gridの状態をsolutionにコピーする
+        self.solution = [row[:] for row in self.grid]
 
     def toggle_cell(self, col, row):
         if 0 <= col < self.cols and 0 <= row < self.rows:
             self.grid[row][col] = 1 - self.grid[row][col]
 
     def draw(self):
+        pyxel.cls(0)
+
+        max_hint = 8  # 7→8に変更
+
+        # 行ヒント（左）
+        for row in range(self.rows):
+            hints = self.row_hints[row] if hasattr(self, 'row_hints') else []
+            for i in range(max_hint):
+                x = self.offset_x - (max_hint - i) * self.cell_size
+                y = self.offset_y + row * self.cell_size
+                pyxel.rect(x, y, self.cell_size, self.cell_size, 1)  # 空マス背景
+                if i < len(hints):
+                    pyxel.text(x + 3, y + 4, str(hints[i]), 7)
+
+        # 列ヒント（上）
+        for col in range(self.cols):
+            hints = self.col_hints[col] if hasattr(self, 'col_hints') else []
+            for i in range(max_hint):
+                x = self.offset_x + col * self.cell_size
+                y = self.offset_y - (max_hint - i) * self.cell_size
+                pyxel.rect(x, y, self.cell_size, self.cell_size, 1)  # 空マス背景
+                if i < len(hints):
+                    pyxel.text(x + 3, y + 4, str(hints[i]), 7)
+
         for row in range(self.rows):
             for col in range(self.cols):
-                x = col * self.cell_size + self.offset
-                y = row * self.cell_size + self.offset
+                x = col * self.cell_size + self.offset_x
+                y = row * self.cell_size + self.offset_y
                 color = 0 if self.grid[row][col] == 0 else 7
                 pyxel.rect(x, y, self.cell_size, self.cell_size, color)
                 pyxel.rectb(x, y, self.cell_size, self.cell_size, 13)

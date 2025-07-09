@@ -3,14 +3,15 @@ from Character import *
 
 class App:
     def __init__(self):
-        pyxel.init(300, 235)
+        pyxel.init(500, 400, display_scale=2)
         self.table = Table(15, 15, 15)
+        self.cleared = False
 
         self.buttons = []
 
         # All Clearボタン作成
         clear_button = Button(
-            x=240,
+            x=400,
             y=50,
             w=50,
             h=40,
@@ -20,16 +21,30 @@ class App:
 
         self.buttons.append(clear_button)
 
+        translate_button = Button(
+            x=400,
+            y=110,
+            w=50,
+            h=40,
+            label="Translate",
+            on_click=self.table.generate_hints
+        )
+        self.buttons.append(translate_button)
+
         pyxel.mouse(True)
         self.dragging = False          # ドラッグ中フラグ
         self.start_col = None          # ドラッグ開始セル（列）
         self.start_row = None          # ドラッグ開始セル（行）
         pyxel.run(self.update, self.draw)
+    
+    def translate_button_clicked(self):
+        self.table.set_solution_from_grid()  # 今の盤面を正解として保存
+        self.cleared = False  # クリア状態リセット
 
     def update(self):
         mx, my = pyxel.mouse_x, pyxel.mouse_y
-        col = (mx - self.table.offset) // self.table.cell_size
-        row = (my - self.table.offset) // self.table.cell_size
+        col = (mx - self.table.offset_x) // self.table.cell_size
+        row = (my - self.table.offset_y) // self.table.cell_size
 
     # --- ボタンの処理 ---
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
@@ -69,13 +84,27 @@ class App:
             self.dragging = False
             self.start_col = None
             self.start_row = None
+
+        if self.table.is_cleared():
+            self.cleared = True
+
+    # クリア状態ならクリックでリセット
+        if self.cleared and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            self.reset_game()
         
 
     def draw(self):
         pyxel.cls(0)
-        self.table.draw()
 
-        for button in self.buttons:
-            button.draw()
+        if self.cleared:
+            pyxel.text(100, 100, "CLEAR!", pyxel.frame_count % 16)
+            pyxel.text(80, 120, "Click to restart", 7)
+        else:
+            self.table.draw()
+            for button in self.buttons:
+                button.draw()
 
+    def reset_game(self):
+        self.table.clear_all()
+        self.cleared = False
 App()
