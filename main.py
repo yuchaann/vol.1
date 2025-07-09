@@ -11,8 +11,8 @@ class App:
     def update(self):
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             mx, my = pyxel.mouse_x, pyxel.mouse_y
-            col = mx // self.table.cell_size
-            row = my // self.table.cell_size
+            col = (mx - self.table.offset) // self.table.cell_size
+            row = (my - self.table.offset) // self.table.cell_size
             self.table.toggle_cell(col, row)
 
     def draw(self):
