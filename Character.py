@@ -12,6 +12,10 @@ class Table:
         
         # ここで正解用の2次元リストも用意（初期は全部0でOK）
         self.solution = [[0 for _ in range(cols)] for _ in range(rows)]
+
+        self.marks = [[0 for _ in range(cols)] for _ in range(rows)]  # ×マーク状態
+        self.miss_count = 0  # ミス数
+        self.mistakes = []  # ここで追加！mistakesの初期化
     
     def is_cleared(self):
         if all(cell == 0 for row in self.grid for cell in row):
@@ -24,7 +28,39 @@ class Table:
 
     def toggle_cell(self, col, row):
         if 0 <= col < self.cols and 0 <= row < self.rows:
+            if self.marks[row][col] == 1:
+                return  # ×がある場合は何もしない
             self.grid[row][col] = 1 - self.grid[row][col]
+            
+            if self.grid[row][col] == 1:
+                self.marks[row][col] = 0  # 塗ったら×は自動で消す
+
+            if hasattr(self, 'solution'):
+                if self.grid[row][col] != self.solution[row][col]:
+                    if (col, row) not in self.mistakes:
+                        self.mistakes.append((col, row))
+                else:
+                    if (col, row) in self.mistakes:
+                        self.mistakes.remove((col, row))
+
+    def toggle_mark(self, col, row):
+        if 0 <= col < self.cols and 0 <= row < self.rows:
+            if self.grid[row][col] == 1:
+                return  # 黒く塗られてたら×をつけさせない
+            self.marks[row][col] = 1 - self.marks[row][col]
+
+    def evaluate_mistakes(self):
+        self.miss_count = 0
+        for row in range(self.rows):
+            for col in range(self.cols):
+                cell = self.grid[row][col]
+                mark = self.marks[row][col]
+                sol = self.solution[row][col]
+
+                if cell == 1 and sol == 0:
+                    self.miss_count += 1  # 黒く塗っちゃダメなとこ塗った
+                if mark == 1 and sol == 1:
+                    self.miss_count += 1  # ×付けたとこが実は塗るべきだった
 
     def draw(self):
         pyxel.cls(0)
@@ -51,6 +87,11 @@ class Table:
                 if i < len(hints):
                     pyxel.text(x + 3, y + 4, str(hints[i]), 7)
 
+            for col, row in self.mistakes:
+                x = col * self.cell_size + self.offset_x + 3
+                y = row * self.cell_size + self.offset_y + 3
+                pyxel.text(x, y, "x", 8)  # 赤色で×印を表示
+
         for row in range(self.rows):
             for col in range(self.cols):
                 x = col * self.cell_size + self.offset_x
@@ -58,11 +99,14 @@ class Table:
                 color = 0 if self.grid[row][col] == 0 else 7
                 pyxel.rect(x, y, self.cell_size, self.cell_size, color)
                 pyxel.rectb(x, y, self.cell_size, self.cell_size, 13)
+                if self.marks[row][col] == 1:
+                    pyxel.text(x + 4, y + 4, "X", 8)
     
+        
     def clear_all(self):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.grid[row][col] = 0  # 全部黒にする（1 = 黒）
+        self.grid = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
+        self.marks = [[0 for _ in range(self.cols)] for _ in range(self.rows)]
+        self.miss_count = 0
 
     def generate_hints(self):
         # 行ヒント（row_hints）を作成
