@@ -1,5 +1,6 @@
 import pyxel
 from Character import *
+from ortools.sat.python import cp_model
 
 class App:
     def __init__(self):
@@ -151,11 +152,21 @@ class App:
         self.table.col_hints = [[0] for _ in range(self.table.cols)]  # ← 列も同様
 
     def on_translate(self):
-        self.table.set_solution_from_grid()  # 正解を保存
-        self.table.generate_hints()
-        self.table.clear_all()               # 盤面リセット（全部黒）
-        self.cleared = False
-        self.has_solution = True
+        self.table.set_solution_from_grid()  # gridの状態をsolutionにコピー
+        self.table.generate_hints()          # ヒント作成
+
+        # 一意解チェックしてみる
+        unique = self.table.is_unique_solution(self.table.row_hints, self.table.col_hints)
+
+        if unique:
+            print("このヒントは一意解を持っています！")
+            self.cleared = False
+            self.has_solution = True
+            self.table.clear_all()            # 盤面リセット（全部白）
+        else:
+            print("注意！このヒントは複数の解が存在します。")
+            self.has_solution = False
+
 
     def on_answer(self):
         self.table.evaluate_mistakes()

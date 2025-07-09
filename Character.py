@@ -1,4 +1,5 @@
 import pyxel
+from ortools.sat.python import cp_model
 
 class Table:
     def __init__(self, cols, rows, cell_size):
@@ -139,6 +140,63 @@ class Table:
             if count > 0:
                 hints.append(count)
             self.col_hints.append(hints if hints else [0])
+
+    def is_unique_solution(self, row_hints, col_hints):
+        model = cp_model.CpModel()
+        grid = [[model.NewBoolVar(f"cell_{r}_{c}") for c in range(self.cols)] for r in range(self.rows)]
+
+        # 行ヒント制約
+        for r, hint in enumerate(row_hints):
+            self._add_line_hint_constraint(model, grid[r], hint)
+
+        # 列ヒント制約
+        for c, hint in enumerate(col_hints):
+            col = [grid[r][c] for r in range(self.rows)]
+            self._add_line_hint_constraint(model, col, hint)
+
+        solver = cp_model.CpSolver()
+        solution_count = 0
+
+        class SolutionCounter(cp_model.CpSolverSolutionCallback):
+            def __init__(self):
+                cp_model.CpSolverSolutionCallback.__init__(self)
+                self.count = 0
+
+            def on_solution_callback(self):
+                self.count += 1
+                if self.count > 1:
+                    self.StopSearch()
+
+        counter = SolutionCounter()
+        solver.SearchForAllSolutions(model, counter)
+
+        return counter.count == 1
+
+
+    def _add_line_hint_constraint(self, model, line_vars, hint):
+        n = len(line_vars)
+        if hint == [0]:
+            for var in line_vars:
+                model.Add(var == 0)
+            return
+
+        total_blocks = len(hint)
+        starts = [model.NewIntVar(0, n - 1, f"start_{i}") for i in range(total_blocks)]
+
+        for i in range(1, total_blocks):
+            model.Add(starts[i] >= starts[i-1] + hint[i-1] + 1)
+
+        for i in range(total_blocks):
+            for j in range(hint[i]):
+                model.Add(line_vars[starts[i] + j] == 1)
+
+        # それ以外は0に
+        for i in range(n):
+            in_block_conditions = []
+            for b in range(total_blocks):
+                for j in range(hint[b]):
+                    in_block_conditions.append(starts[b] + j == i)
+            model.AddBoolOr([line_vars[i].Not()] + in_block_conditions)
 
 
 class Button:
