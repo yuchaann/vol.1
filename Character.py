@@ -14,6 +14,8 @@ class Table:
         self.solution = [[0 for _ in range(cols)] for _ in range(rows)]
     
     def is_cleared(self):
+        if all(cell == 0 for row in self.grid for cell in row):
+            return False  # 盤面が空ならクリアじゃない
         return self.grid == self.solution
     
     def set_solution_from_grid(self):

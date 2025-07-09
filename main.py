@@ -6,6 +6,7 @@ class App:
         pyxel.init(500, 400, display_scale=2)
         self.table = Table(15, 15, 15)
         self.cleared = False
+        self.has_solution = False
 
         self.buttons = []
 
@@ -27,7 +28,7 @@ class App:
             w=50,
             h=40,
             label="Translate",
-            on_click=self.table.generate_hints
+             on_click=self.on_translate
         )
         self.buttons.append(translate_button)
 
@@ -36,21 +37,12 @@ class App:
         self.start_col = None          # ドラッグ開始セル（列）
         self.start_row = None          # ドラッグ開始セル（行）
         pyxel.run(self.update, self.draw)
-    
-    def translate_button_clicked(self):
-        self.table.set_solution_from_grid()  # 今の盤面を正解として保存
-        self.cleared = False  # クリア状態リセット
 
     def update(self):
+        print(f"cleared={self.cleared}, has_solution={self.has_solution}, is_cleared={self.table.is_cleared()}")
         mx, my = pyxel.mouse_x, pyxel.mouse_y
         col = (mx - self.table.offset_x) // self.table.cell_size
         row = (my - self.table.offset_y) // self.table.cell_size
-
-    # --- ボタンの処理 ---
-        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            for button in self.buttons:
-                if button.handle_click(mx, my):
-                    return  # ボタンが押された場合、ここで処理終了！
 
     # --- 以下はマスの処理 ---
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
@@ -61,6 +53,7 @@ class App:
             self.modified_cells = set()
             if 0 <= col < self.table.cols and 0 <= row < self.table.rows:
                 self.table.toggle_cell(col, row)
+                # self.has_solution = False  # ここでフラグをFalseに戻す
                 self.modified_cells.add((col, row))
 
         elif pyxel.btn(pyxel.MOUSE_BUTTON_LEFT) and self.dragging:
@@ -71,13 +64,16 @@ class App:
                     for r in range(r1, r2 + 1):
                         if (col, r) not in self.modified_cells:
                             self.table.toggle_cell(col, r)
+                            # self.has_solution = False  # ここも忘れずに
                             self.modified_cells.add((col, r))
                 elif row == self.start_row:
                     c1, c2 = sorted([self.start_col, col])
                     for c in range(c1, c2 + 1):
                         if (c, row) not in self.modified_cells:
                             self.table.toggle_cell(c, row)
+                            # self.has_solution = False  # 同じくここも
                             self.modified_cells.add((c, row))
+
 
         elif pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
             # ドラッグ終了
@@ -85,8 +81,21 @@ class App:
             self.start_col = None
             self.start_row = None
 
-        if self.table.is_cleared():
+        # --- ボタンの処理 ---
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            for button in self.buttons:
+                if button.handle_click(mx, my):
+                    return  # ボタンが押された場合、ここで処理終了！
+
+        if self.has_solution and self.table.is_cleared():
             self.cleared = True
+            
+        else:
+            self.cleared = False  # 追加
+            # print("クリアしてまへん")
+
+        if self.cleared and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            self.reset_game()
 
     # クリア状態ならクリックでリセット
         if self.cleared and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
@@ -96,7 +105,8 @@ class App:
     def draw(self):
         pyxel.cls(0)
 
-        if self.cleared:
+        if self.cleared is True:
+            print("クリアしとります")
             pyxel.text(100, 100, "CLEAR!", pyxel.frame_count % 16)
             pyxel.text(80, 120, "Click to restart", 7)
         else:
@@ -107,4 +117,12 @@ class App:
     def reset_game(self):
         self.table.clear_all()
         self.cleared = False
+        self.has_solution = False  # 追加
+
+    def on_translate(self):
+        self.table.set_solution_from_grid()  # 正解を保存
+        self.table.generate_hints()
+        self.table.clear_all()               # 盤面リセット（全部黒）
+        self.cleared = False
+        self.has_solution = True
 App()
