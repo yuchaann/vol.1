@@ -135,7 +135,7 @@ class App:
         pyxel.text(10, 10, f"Misses: {self.table.miss_count}", 7)
 
         if self.cleared is True:
-            print("クリアしとります")
+            # print("クリアしとります")
             pyxel.text(250, 200, "CLEAR!", pyxel.frame_count % 30)
             pyxel.text(250, 240, "Click to restart", 15)
         else:
