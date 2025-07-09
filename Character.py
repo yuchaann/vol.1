@@ -21,6 +21,30 @@ class Table:
                 color = 0 if self.grid[row][col] == 0 else 7
                 pyxel.rect(x, y, self.cell_size, self.cell_size, color)
                 pyxel.rectb(x, y, self.cell_size, self.cell_size, 13)
+    
+    def clear_all(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.grid[row][col] = 0  # 全部黒にする（1 = 黒）
+
+class Button:
+    def __init__(self, x, y, w, h, label, on_click):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.label = label
+        self.on_click = on_click  # ボタン押下時に呼ばれる関数
+
+    def draw(self):
+        pyxel.rect(self.x, self.y, self.w, self.h, 8)  # ボタンの背景（灰色）
+        pyxel.text(self.x + 5, self.y + self.h // 2 - 3, self.label, 7)  # ボタンの文字
+
+    def handle_click(self, mx, my):
+        if self.x <= mx <= self.x + self.w and self.y <= my <= self.y + self.h:
+            self.on_click()
+            return True
+        return False
 
 
 
