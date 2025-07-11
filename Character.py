@@ -8,6 +8,7 @@ class Table:
         self.offset_x = 130
         self.offset_y = 130
         self.cell_size = cell_size
+        self.show_answer = False
         self.grid = [[0 for _ in range(cols)] for _ in range(rows)]
         
         # ここで正解用の2次元リストも用意（初期は全部0でOK）
@@ -101,6 +102,23 @@ class Table:
                 pyxel.rectb(x, y, self.cell_size, self.cell_size, 13)
                 if self.marks[row][col] == 1:
                     pyxel.text(x + 4, y + 4, "X", 8)
+            
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    x = self.offset_x + c * self.cell_size
+                    y = self.offset_y + r * self.cell_size
+
+                    # 表示切替：答えを表示する or 通常モード
+                    if self.show_answer:
+                        color = 9 if self.solution[r][c] else 0
+                    else:
+                        color = 7 if self.grid[r][c] else 0
+
+                    pyxel.rect(x, y, self.cell_size, self.cell_size, color)
+                    pyxel.rectb(x, y, self.cell_size, self.cell_size, 13)
+
+                    if self.marks[r][c] and not self.show_answer:
+                        pyxel.text(x + 4, y + 4, "X", 8)
     
         
     def clear_all(self):
@@ -139,6 +157,9 @@ class Table:
             if count > 0:
                 hints.append(count)
             self.col_hints.append(hints if hints else [0])
+
+    def set_show_answer(self, flag):
+        self.show_answer = flag
 
 
 class Button:

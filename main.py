@@ -7,9 +7,20 @@ class App:
         self.table = Table(15, 15, 15)
         self.cleared = False
         self.has_solution = False
+        self.showing_answer = False
 
         self.mistakes = []
         self.buttons = []
+        
+        show_button = Button(
+            x=400,
+            y=230,
+            w=50,
+            h=40,
+            label="Show",
+            on_click=self.toggle_answer)
+
+        self.buttons.append(show_button)
 
         # All Clearボタン作成
         clear_button = Button(
@@ -164,4 +175,8 @@ class App:
             print("クリア！")
         else:
             print(f"ミスがあります。ミス数: {self.table.miss_count}")
+
+    def toggle_answer(self):
+        self.showing_answer = not self.showing_answer
+        self.table.set_show_answer(self.showing_answer)
 App()
