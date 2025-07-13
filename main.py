@@ -55,6 +55,17 @@ class App:
         )
         self.buttons.append(answer_button)
 
+        unique_button = Button(
+            x=400,
+            y=280,
+            w=50,
+            h=40,
+            label="Unique",
+            on_click=self.on_check_unique
+        )
+        self.buttons.append(unique_button)
+
+
         pyxel.mouse(True)
         self.dragging = False          # ドラッグ中フラグ
         self.start_col = None          # ドラッグ開始セル（列）
@@ -179,4 +190,13 @@ class App:
     def toggle_answer(self):
         self.showing_answer = not self.showing_answer
         self.table.set_show_answer(self.showing_answer)
+
+    def on_check_unique(self):
+        if not self.has_solution:
+            print("まずTranslateでヒントを生成してください")
+            return
+        if self.table.has_unique_solution():
+            print("✅ 一意解があります！")
+        else:
+            print("❌ 一意解ではありません（複数解の可能性）")
 App()

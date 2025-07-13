@@ -160,6 +160,73 @@ class Table:
 
     def set_show_answer(self, flag):
         self.show_answer = flag
+        self.show_answer = flag
+
+    def has_unique_solution(self):
+        """今のヒントに一意解があるか判定"""
+        solutions = []
+        def dfs(grid, row=0):
+            if row == self.rows:
+                # 解が完成したらヒント一致チェック
+                if self.hints_match(grid):
+                    solutions.append([r[:] for r in grid])
+                return
+
+            # この行でありえる塗り方の候補を生成
+            for candidate in self.generate_row_candidates(self.row_hints[row], self.cols):
+                grid[row] = candidate
+                dfs(grid, row + 1)
+                if len(solutions) > 1:
+                    return  # 2個以上見つかったら中断
+
+        grid = [[0] * self.cols for _ in range(self.rows)]
+        dfs(grid)
+        return len(solutions) == 1
+    
+    def generate_row_candidates(self, hint, length):
+        """ヒントから可能な1行の候補を列挙"""
+        def dfs(index, hint_index, current):
+            if hint_index == len(hint):
+                current += [0] * (length - len(current))
+                results.append(current)
+                return
+            for i in range(index, length - sum(hint[hint_index:]) - (len(hint) - hint_index - 1) + 1):
+                new_current = current + [0] * (i - len(current)) + [1] * hint[hint_index]
+                if len(new_current) < length:
+                    new_current += [0]
+                dfs(i + 1, hint_index + 1, new_current[:])
+        results = []
+        dfs(0, 0, [])
+        return results
+
+    def hints_match(self, grid):
+        """今のgridが行・列ヒントと一致してるか"""
+        # 行チェック
+        for r in range(self.rows):
+            if self.extract_hint(grid[r]) != self.row_hints[r]:
+                return False
+        # 列チェック
+        for c in range(self.cols):
+            col = [grid[r][c] for r in range(self.rows)]
+            if self.extract_hint(col) != self.col_hints[c]:
+                return False
+        return True
+
+    def extract_hint(self, line):
+        """ヒントを生成（1列や1行から）"""
+        hints = []
+        count = 0
+        for cell in line:
+            if cell == 1:
+                count += 1
+            elif count > 0:
+                hints.append(count)
+                count = 0
+        if count > 0:
+            hints.append(count)
+        return hints or [0]
+
+
 
 
 class Button:
